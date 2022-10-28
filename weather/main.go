@@ -19,7 +19,7 @@ var (
 )
 
 func main() {
-	cityList := []string{"Barcelona", "Boston", "London", "Moscow", "Yerevan"}
+	// cityList := []string{"Barcelona", "Boston", "London", "Moscow", "Yerevan", "Tomsk", "Geneva"}
 	for i := 0; i < attempts; i++ {
 		if db.GetConn() != nil {
 			break
@@ -33,22 +33,35 @@ func main() {
 		os.Exit(1)
 	}
 
-	// // fmt.Println(db.FindForecastByLocationId(1))
-	// fmt.Println(time.Unix(1666753200, 0))
-	// // fmt.Printf("%T", time.Unix(1666753200, 0))
-	// fmt.Println(db.GetDetailForecast(1, 1666807200))
-	// return
-
-	err := integrations.RefreshData(cityList)
+	err := integrations.RefreshData()
 	if err != nil {
-		log.Err("", err)
+		log.Err("Something wrong with refresh method", err)
 	}
+
+	ticker := time.NewTicker(30 * time.Second)
+
+	quit := make(chan struct{})
+
+	go func() {
+		for {
+			select {
+			case <-ticker.C:
+				log.Info("Refreshing data")
+				err := integrations.RefreshData()
+				if err != nil {
+					log.Err("Something wrong with refresh method", err)
+				}
+			case <-quit:
+				ticker.Stop()
+				return
+			}
+		}
+	}()
 
 	handler := getHTTPHandler()
 
 	httpServer := server.NewHTTPRestServer(":"+config.Get("PORT"), handler)
 	_ = httpServer.Serve()
-
 }
 
 func getControllers() []server.Controller {

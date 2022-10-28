@@ -1,38 +1,24 @@
 package integrations
 
-import (
-	"weather/tool/db"
-)
+import "weather/tool/db"
 
-func RefreshData(cityList []string) error {
-
-	forecastlistdata := []*db.Forecast{}
-
-	for i := range cityList {
-
-		loc, err := GetLocation(cityList[i])
-		if err != nil {
-			return err
-		}
-
-		id, err := db.InsertOrUpdateLocation(loc)
-		if err != nil {
-			return err
-		}
-
-		forc, err := GetForecast(loc.Lat, loc.Lng)
-		if err != nil {
-			return err
-		}
-
-		for i := range forc {
-			forc[i].LocationId = id
-		}
-
-		forecastlistdata = append(forecastlistdata, forc...)
+func RefreshData() error {
+	forecastList := []*db.Forecast{}
+	locations, err := db.FindAllLocations()
+	if err != nil {
+		return err
 	}
-
-	err := db.InsertOrUpdateForecast(forecastlistdata)
+	for i := range locations {
+		forc, err := GetForecast(locations[i].Lat, locations[i].Lng)
+		if err != nil {
+			return err
+		}
+		for j := range forc {
+			forc[j].LocationId = locations[i].Id
+		}
+		forecastList = append(forecastList, forc...)
+	}
+	err = db.InsertOrUpdateForecast(forecastList)
 	if err != nil {
 		return err
 	}

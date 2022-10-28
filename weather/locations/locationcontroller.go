@@ -1,9 +1,12 @@
 package locations
 
 import (
+	"encoding/json"
+	"errors"
 	"net/http"
 	"strconv"
 	"sync"
+	"weather/tool/integrations"
 	"weather/tool/log"
 	"weather/tool/server"
 	"weather/tool/service"
@@ -37,6 +40,8 @@ func (lc *LocationController) GetRoutes() []server.Route {
 	routes = append(routes, server.Route{Name: "Get detailed location information at specified time", Method: http.MethodGet, Pattern: "/locations/{locationId}",
 		HandlerFunc: lc.getLocationForecastDetails})
 
+	routes = append(routes, server.Route{Name: "Add Location", Method: http.MethodPost, Pattern: "/locations",
+		HandlerFunc: lc.addLocations})
 	return routes
 }
 
@@ -65,4 +70,22 @@ func (lc *LocationController) getLocationForecastDetails(w http.ResponseWriter, 
 	details, err := service.GetForecastDetails(locationId, timeReq)
 
 	server.WriteResponse(w, http.StatusOK, details)
+}
+
+func (lc *LocationController) addLocations(w http.ResponseWriter, r *http.Request) {
+	reqBody := integrations.JSONMap{}
+	if err := json.NewDecoder(r.Body).Decode(&reqBody); err != nil {
+		server.WriteResponse(w, http.StatusBadRequest, err)
+	}
+
+	name, ok := reqBody["name"].(string)
+	if !ok {
+		server.WriteResponse(w, http.StatusBadRequest, errors.New("failed to get name"))
+	}
+
+	err := service.InsertLocation(name)
+	if err != nil {
+		server.WriteResponse(w, http.StatusInternalServerError, err)
+	}
+	server.WriteResponse(w, http.StatusOK, "New location Added")
 }

@@ -20,7 +20,6 @@ type Route struct {
 // Controller interface
 type Controller interface {
 	GetRoutes() []Route
-	// Cleanup()
 }
 
 func WriteResponse(w http.ResponseWriter, statusCode int, body interface{}) {
