@@ -33,10 +33,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	err := integrations.RefreshData()
-	if err != nil {
-		log.Err("Something wrong with refresh method", err)
-	}
+	integrations.RefreshData()
 
 	ticker := time.NewTicker(30 * time.Second)
 
@@ -46,11 +43,7 @@ func main() {
 		for {
 			select {
 			case <-ticker.C:
-				log.Info("Refreshing data")
-				err := integrations.RefreshData()
-				if err != nil {
-					log.Err("Something wrong with refresh method", err)
-				}
+				integrations.RefreshData()
 			case <-quit:
 				ticker.Stop()
 				return

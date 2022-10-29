@@ -114,7 +114,7 @@ func InsertLocation(name string) error {
 		forc[i].LocationId = id
 	}
 
-	err = db.InsertOrUpdateForecast(forc)
+	db.InsertOrUpdateForecast(forc)
 	if err != nil {
 		return err
 	}
