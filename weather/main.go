@@ -19,7 +19,7 @@ var (
 )
 
 func main() {
-	// cityList := []string{"Barcelona", "Boston", "London", "Moscow", "Yerevan", "Tomsk", "Geneva"}
+
 	for i := 0; i < attempts; i++ {
 		if db.GetConn() != nil {
 			break
