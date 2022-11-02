@@ -21,7 +21,9 @@ func FindAllLocations() ([]*Location, error) {
 	query := fmt.Sprintf(`SELECT 
 			id, 
 			name,
-			country
+			country,
+			lat,
+			lng
 		FROM %s
 		ORDER BY name`, LocationsTable)
 
@@ -70,7 +72,7 @@ func GetLocationById(id int) (*Location, error) {
 
 func InsertOrUpdateLocation(location *Location) (int, error) {
 
-	log.Info("Trying to isert info in LocationsTable")
+	log.Info("Trying to insert info in LocationsTable")
 	id := 0
 	query := fmt.Sprintf(`INSERT INTO %s (
 		name,
@@ -88,27 +90,26 @@ func InsertOrUpdateLocation(location *Location) (int, error) {
 		return 0, err
 	}
 
-	log.Info("Succes of iserting in LocationsTable")
+	log.Info("Succes of inserting in LocationsTable")
 
 	return id, nil
 
 }
 
-// TODO err with same "names"
-func GetLocationByName(name string) (*Location, error) {
-	var location Location
+func GetLocationByName(name string) (int, error) {
+	id := 0
 
-	query := fmt.Sprintf(`SELECT 
-		id, 
-		name,
-		country,
-		lat,
-		lng
+	log.Info("Quering for check list city")
+
+	query := fmt.Sprintf(`SELECT
+		id
 	  FROM %s
 	  WHERE name=$1`, LocationsTable)
-	if err := GetConn().Instance.Get(&location, query, name); err != nil {
-		return nil, err
+	if err := GetConn().Instance.QueryRow(query, name).Scan(&id); err != nil {
+		return 0, err
 	}
 
-	return &location, nil
+	log.Info("New city was added")
+
+	return id, nil
 }

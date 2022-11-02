@@ -67,7 +67,7 @@ func getNext(count *int) *int {
 	return count
 }
 
-func InsertOrUpdateForecast(forecasts []*Forecast) error {
+func InsertOrUpdateForecast(forecasts []*Forecast) {
 	paramCount := 0
 	valsPlaceholders := make([]string, 0, len(forecasts))
 	vals := make([]interface{}, 0, 4*len(forecasts))
@@ -91,8 +91,6 @@ func InsertOrUpdateForecast(forecasts []*Forecast) error {
 	  `, ForecastTable, strings.Join(valsPlaceholders, ", "))
 
 	if _, err := GetConn().Instance.Exec(query, vals...); err != nil {
-		return err
+		log.Err("Some thing wrong with InsertOrUpdateForecast", err)
 	}
-
-	return nil
 }

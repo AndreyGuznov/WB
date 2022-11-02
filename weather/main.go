@@ -19,7 +19,7 @@ var (
 )
 
 func main() {
-	cityList := []string{"Barcelona", "Boston", "London", "Moscow", "Yerevan"}
+
 	for i := 0; i < attempts; i++ {
 		if db.GetConn() != nil {
 			break
@@ -33,22 +33,28 @@ func main() {
 		os.Exit(1)
 	}
 
-	// // fmt.Println(db.FindForecastByLocationId(1))
-	// fmt.Println(time.Unix(1666753200, 0))
-	// // fmt.Printf("%T", time.Unix(1666753200, 0))
-	// fmt.Println(db.GetDetailForecast(1, 1666807200))
-	// return
+	integrations.RefreshData()
 
-	err := integrations.RefreshData(cityList)
-	if err != nil {
-		log.Err("", err)
-	}
+	ticker := time.NewTicker(30 * time.Second)
+
+	quit := make(chan struct{})
+
+	go func() {
+		for {
+			select {
+			case <-ticker.C:
+				integrations.RefreshData()
+			case <-quit:
+				ticker.Stop()
+				return
+			}
+		}
+	}()
 
 	handler := getHTTPHandler()
 
 	httpServer := server.NewHTTPRestServer(":"+config.Get("PORT"), handler)
 	_ = httpServer.Serve()
-
 }
 
 func getControllers() []server.Controller {

@@ -37,8 +37,6 @@ func (fc *ForecastController) GetRoutes() []server.Route {
 	return routes
 }
 
-// func (fc *ForecastController) Cleanup() {}
-
 func (fc *ForecastController) getForecast(w http.ResponseWriter, r *http.Request) {
 	// Read the location id from the url path.
 	vars := mux.Vars(r)

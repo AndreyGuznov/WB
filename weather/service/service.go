@@ -1,9 +1,11 @@
 package service
 
 import (
+	"database/sql"
 	"fmt"
 	"weather/tool/db"
 	"weather/tool/dto"
+	"weather/tool/integrations"
 	"weather/tool/log"
 )
 
@@ -81,4 +83,40 @@ func GetForecastDetails(locationId int, timestamp int64) (*dto.LocationDTO, erro
 		Forecast: fc,
 	}, nil
 
+}
+
+func InsertLocation(name string) error {
+	loc, err := integrations.GetLocation(name)
+	if err != nil {
+		return err
+	}
+
+	id, err := db.GetLocationByName(name)
+	if err != nil {
+		if err != sql.ErrNoRows {
+			return err
+		}
+	}
+
+	if err == sql.ErrNoRows {
+		id, err = db.InsertOrUpdateLocation(loc)
+		if err != nil {
+			return err
+		}
+	}
+
+	forc, err := integrations.GetForecast(loc.Lat, loc.Lng)
+	if err != nil {
+		return err
+	}
+
+	for i := range forc {
+		forc[i].LocationId = id
+	}
+
+	db.InsertOrUpdateForecast(forc)
+	if err != nil {
+		return err
+	}
+	return nil
 }
